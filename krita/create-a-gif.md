@@ -54,4 +54,6 @@ Ctrl + Z: Su mejor amigo para corregir trazos.
 Atajo rápido: Pueden usar las flechas del teclado ← → para moverse entre fotogramas y revisar la fluidez.
 
 Color de Papel Cebolla: Si no ven bien los trazos previos, pueden ajustar la opacidad en el panel de Papel Cebolla (Onion Skin).
+
+https://docs.google.com/document/d/1HNdNc9pTlrt5_ypaePsLVet7KdtW7sbZU6DFo0e2Q98/edit?usp=sharing
 https://www.ffmpeg.org/download.html
