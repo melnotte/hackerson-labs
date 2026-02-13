@@ -1,132 +1,49 @@
-# 🧪 Laboratorio de Roblox
+# 🧪 Laboratorio de Roblox: Edición Espada y Puntos
 
-Misión: Construir un juego funcional usando todas las herramientas del "Explorer" y entender las propiedades de la materia digital.
+## 📂 1. Mapa de Carpetas (Explorer)
+Organiza tus objetos de la siguiente manera:
 
----
-
-## 📑 1. Diccionario de Comandos (Cheat Sheet)
-* local: Crea un nombre para guardar algo.
-* task.wait(n): Pausa el código por n segundos.
-* Connect(function() ... end): Escucha un evento (como un toque) y ejecuta una acción.
-* Vector3.new(x, y, z): Posición en el espacio 3D.
-* Parent: Es el "Padre" o contenedor de un objeto.
-
----
-
-## 🏗️ 2. Fase de Construcción (Workspace)
-El Workspace es el mundo físico.
-
-1. Crea el suelo: Inserta una Part, cámbiale el nombre a SueloPeligroso.
-2. Abre el Panel de Propiedades:
-    * BrickColor: Naranja brillante.
-    * Material: Neon.
-    * Anchored: ✅ (Activado).
-
-
+* Workspace 🌎
+    * SueloPeligroso (Parte naranja Neon).
+* ReplicatedStorage 📦
+    * EsferaLava
+    * DestruirEsferaEvent (Crea un RemoteEvent con este nombre).
+* ServerScriptService ⚙️
+    * GeneradorEsferas (Script).
+    * GestionPuntos (Script).
+    * LogicaSuelo (Script).
+* StarterPack ⚔️
+    * Sword (La espada).
+        * ScriptPuntosEspada (LocalScript dentro de la espada).
+* StarterPlayer 👤 -> StarterPlayerScripts
+    * ControlDañoReaparicion (LocalScript).
 
 ---
 
-## 📦 3. Fase de Almacén (ReplicatedStorage)
+## 🏗️ 2. Lógica del Servidor (ServerScriptService)
 
-1. Crea una esfera, llámala EsferaLava.
-2. Arrastra EsferaLava dentro de ReplicatedStorage.
+### A. Generador de Esferas (GeneradorEsferas)
+lua local ReplicatedStorage = game:GetService("ReplicatedStorage") 
+local debris = game:GetService("Debris") local esferaOriginal = ReplicatedStorage:WaitForChild("EsferaLava")  while true do     task.wait(1.5)     local copia = esferaOriginal:Clone()     copia.Name = "EsferaLava"     copia.Parent = game.Workspace          local x = math.random(-30, 30)     local z = math.random(-30, 30)     copia.Position = Vector3.new(x, 50, z)          debris:AddItem(copia, 4) end 
 
----
+### B. Tabla de Puntos (GestionPuntos)
+lua local ReplicatedStorage = game:GetService("ReplicatedStorage") local evento = ReplicatedStorage:WaitForChild("DestruirEsferaEvent")  game.Players.PlayerAdded:Connect(function(jugador)     local stats = Instance.new("Folder")     stats.Name = "leaderstats"     stats.Parent = jugador      local esferasDestruidas = Instance.new("IntValue")     esferasDestruidas.Name = "Esferas"     esferasDestruidas.Value = 0     esferasDestruidas.Parent = stats end)  evento.OnServerEvent:Connect(function(jugador)     jugador.leaderstats.Esferas.Value = jugador.leaderstats.Esferas.Value + 1 end) 
 
-## 🧠 4. Fase de Lógica (ServerScriptService)
-
-  * Ubicación: ServerScriptService -> Script
-  * Función: Clona las esferas desde el almacenamiento y las lanza al mundo en posiciones aleatorias.
-
--- Referencias seguras a la API de Roblox
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local debris = game:GetService("Debris")
-
--- Buscamos la esfera que guardamos en el almacén
-local esferaOriginal = ReplicatedStorage:WaitForChild("EsferaLava")
-
--- Bucle infinito: esto se repite por siempre
-while true do
-    task.wait(1.5) -- Pausa de 1.5 segundos entre cada esfera
-    
-    -- Creamos una copia exacta de la esfera
-    local copia = esferaOriginal:Clone()
-    copia.Parent = game.Workspace
-    
-    -- La posicionamos en el cielo en un lugar aleatorio
-    -- math.random(min, max) elige un número al azar
-    local x = math.random(-30, 30)
-    local z = math.random(-30, 30)
-    copia.Position = Vector3.new(x, 50, z)
-    
-    -- Debris (Escombros): Borra la copia después de 4 segundos 
-    -- Esto evita que el juego se ponga lento (Lag)
-    debris:AddItem(copia, 4)
-end
-
-## 🎒 5. Fase de Equipo (StarterPack)
-
-1. Busca una "Sword" en el Toolbox y arrástrala a StarterPack.
+### C. El Suelo es Lava (LogicaSuelo)
+lua local suelo = game.Workspace:WaitForChild("SueloPeligroso")  suelo.Touched:Connect(function(objeto)     local humanoide = objeto.Parent:FindFirstChild("Humanoid")     if humanoide then         humanoide.Health = 0      end end) 
 
 ---
 
-## 🖼️ 6. Fase de Interfaz (StarterGui)
+## ⚔️ 3. Equipo y Combate (StarterPack)
 
-1. Añade un ScreenGui y dentro un TextLabel.
-2. Propiedades: Text = "¡ESQUIVA LAS ESFERAS!", TextScaled = ✅.
+### Script de la Espada (ScriptPuntosEspada)
+lua local herramienta = script.Parent local ReplicatedStorage = game:GetService("ReplicatedStorage") local evento = ReplicatedStorage:WaitForChild("DestruirEsferaEvent")  local atacando = false  herramienta.Activated:Connect(function()     atacando = true     task.wait(0.6)     atacando = false end)  herramienta.Handle.Touched:Connect(function(objeto)     if atacando and objeto.Name == "EsferaLava" then         evento:FireServer()         objeto:Destroy()     end end) 
 
 ---
 
-## 👤 7. Fase de Control (StarterPlayer)
+## 👤 4. Control del Jugador (StarterPlayerScripts)
 
-  * Ubicación: StarterPlayer -> StarterPlayerScripts -> LocalScript
-  * Función: Detecta si el jugador toca una esfera y avisa en la consola.
+### Daño por Esferas (ControlDañoReaparicion)
+lua local jugador = game.Players.LocalPlayer  local function conectarDaño(personaje)     local humanoide = personaje:WaitForChild("Humanoid")          humanoide.Touched:Connect(function(objeto)         if objeto.Name == "EsferaLava" then             humanoide.Health = humanoide.Health - 20         end     end) end  if jugador.Character then conectarDaño(jugador.Character) end jugador.CharacterAdded:Connect(conectarDaño) 
 
-local jugador = game.Players.LocalPlayer
-local personaje = jugador.Character or jugador.CharacterAdded:Wait()
-local humanoide = personaje:WaitForChild("Humanoid")
-
--- Esta función se activa cuando el cuerpo del personaje toca algo
-humanoide.Touched:Connect(function(objetoTocado)
-    -- Verificamos si el objeto que tocamos es una de nuestras esferas
-    if objetoTocado.Name == "EsferaLava" then
-        print("¡AUCH! Te golpeó una esfera de lava.")
-        
-        -- Si quieres que el jugador pierda vida al contacto
-        -- humanoide.Health = humanoide.Health - 10
-    end
-end)
-
-## 🔥 RETO FINAL: ¡El Suelo es Lava!
-En este desafío, haremos que el bloque SueloPeligroso que creamos al principio elimine al jugador si lo toca.
-
-1. Selecciona tu pieza SueloPeligroso en el Workspace.
-2. Asegúrate de que su propiedad Name sea exactamente SueloPeligroso.
-* Ubicación: ServerScriptService -> Script
-* Función: Elimina a cualquier jugador que toque la plataforma principal.
-
--- Buscamos el bloque que nombramos SueloPeligroso
-local suelo = game.Workspace:WaitForChild("SueloPeligroso")
-
-local function alTocarSuelo(objetoQueToco)
-    -- Intentamos encontrar el personaje del jugador
-    local modelo = objetoQueToco.Parent
-    local humanoide = modelo:FindFirstChild("Humanoid")
-
-    -- Si el objeto tiene un "Humanoide", significa que es un jugador
-    if humanoide then
-        humanoide.Health = 0 -- ¡Eliminación instantánea!
-    end
-end
-
--- Conectamos el evento "Touched" a nuestra función
-suelo.Touched:Connect(alTocarSuelo)
-
-## 🏆 ¡Misión Cumplida!
-¡Felicidades! Has construido un juego que tiene:
-* Física: Un suelo firme y esferas que caen.
-* Memoria: Un almacén de esferas listas para ser usadas.
-* Inteligencia: Scripts que clonan objetos y detectan peligros.
-* Interfaz: Un mensaje en pantalla para el jugador.
-
-**¿Qué sigue?** Intenta cambiar la propiedad Transparency de las esferas a 0.5 o cambia la velocidad del task.wait en el script de las esferas para que el juego sea más difícil.
+---
